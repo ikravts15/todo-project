@@ -3,10 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мой первый проект</title>
+  <title>Мои задачи</title>
+  <style>
+    html, body {
+      background: #fff;
+      color: #111;
+      color-scheme: light;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    h1 {
+      margin-bottom: 16px;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .add-form input {
+      flex: 1;
+      padding: 8px;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .task-item.done .task-text {
+      text-decoration: line-through;
+      color: #666;
+    }
+
+    .task-text {
+      flex: 1;
+    }
+  </style>
 </head>
 <body>
-  <h1>Мой первый проект</h1>
-  <p>Привет из Cursor</p>
+  <h1>Мои задачи</h1>
+  <form class="add-form" id="add-form">
+    <input type="text" id="task-input" placeholder="Новая задача">
+    <button type="submit">Добавить</button>
+  </form>
+  <ul class="task-list" id="task-list"></ul>
+
+  <script>
+    const form = document.getElementById("add-form");
+    const input = document.getElementById("task-input");
+    const list = document.getElementById("task-list");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) {
+        return;
+      }
+
+      const item = document.createElement("li");
+      item.className = "task-item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+
+      const label = document.createElement("span");
+      label.className = "task-text";
+      label.textContent = text;
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "Удалить";
+      removeButton.hidden = true;
+
+      checkbox.addEventListener("change", function () {
+        item.classList.toggle("done", checkbox.checked);
+        removeButton.hidden = !checkbox.checked;
+      });
+
+      removeButton.addEventListener("click", function () {
+        item.remove();
+      });
+
+      item.append(checkbox, label, removeButton);
+      list.append(item);
+      input.value = "";
+      input.focus();
+    });
+  </script>
 </body>
 </html>
