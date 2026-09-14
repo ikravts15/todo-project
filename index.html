@@ -81,6 +81,14 @@
       font-size: 14px;
     }
 
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .sort-menu {
       position: relative;
     }
@@ -189,16 +197,20 @@
   </form>
   <div class="list-toolbar">
     <p class="task-count" id="task-count">0 из 0 выполнено</p>
-    <div class="sort-menu">
-      <button type="button" class="sort-toggle" id="sort-toggle" disabled>Упорядочить</button>
-      <ul class="sort-options" id="sort-options" hidden>
-        <li>
-          <button type="button" data-sort="az">Сортировать по алфавиту А-Я</button>
-        </li>
-        <li>
-          <button type="button" data-sort="za">Сортировать по алфавиту Я-А</button>
-        </li>
-      </ul>
+    <div class="toolbar-actions">
+      <button type="button" class="sort-toggle" id="select-all" disabled>Выбрать все</button>
+      <button type="button" class="sort-toggle" id="delete-done" hidden>Удалить все</button>
+      <div class="sort-menu">
+        <button type="button" class="sort-toggle" id="sort-toggle" disabled>Упорядочить</button>
+        <ul class="sort-options" id="sort-options" hidden>
+          <li>
+            <button type="button" data-sort="az">Сортировать по алфавиту А-Я</button>
+          </li>
+          <li>
+            <button type="button" data-sort="za">Сортировать по алфавиту Я-А</button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
   <ul class="task-list" id="task-list"></ul>
@@ -212,6 +224,8 @@
     const count = document.getElementById("task-count");
     const sortToggle = document.getElementById("sort-toggle");
     const sortOptions = document.getElementById("sort-options");
+    const selectAll = document.getElementById("select-all");
+    const deleteDone = document.getElementById("delete-done");
     let sortMode = null;
 
     function readTasks() {
@@ -296,9 +310,19 @@
       }).length;
       count.textContent = done + " из " + tasks.length + " выполнено";
       sortToggle.disabled = tasks.length === 0;
+      selectAll.disabled = tasks.length === 0;
+      deleteDone.hidden = done < 2;
       if (tasks.length === 0) {
         sortOptions.hidden = true;
       }
+    }
+
+    function setItemDone(item, done) {
+      const checkbox = item.querySelector("input[type='checkbox']");
+      const removeButton = item.querySelector("button");
+      checkbox.checked = done;
+      item.classList.toggle("done", done);
+      removeButton.hidden = !done;
     }
 
     function addTask(text, done) {
@@ -319,8 +343,7 @@
       removeButton.hidden = !done;
 
       checkbox.addEventListener("change", function () {
-        item.classList.toggle("done", checkbox.checked);
-        removeButton.hidden = !checkbox.checked;
+        setItemDone(item, checkbox.checked);
         saveTasks();
         updateCount();
       });
@@ -376,6 +399,27 @@
       saveTasks();
       input.value = "";
       input.focus();
+    });
+
+    selectAll.addEventListener("click", function () {
+      if (selectAll.disabled) {
+        return;
+      }
+      Array.from(list.querySelectorAll(".task-item")).forEach(function (item) {
+        setItemDone(item, true);
+      });
+      saveTasks();
+      updateCount();
+    });
+
+    deleteDone.addEventListener("click", function () {
+      Array.from(list.querySelectorAll(".task-item")).forEach(function (item) {
+        if (item.querySelector("input[type='checkbox']").checked) {
+          item.remove();
+        }
+      });
+      saveTasks();
+      updateCount();
     });
 
     sortToggle.addEventListener("click", function () {
