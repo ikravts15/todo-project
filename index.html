@@ -66,22 +66,31 @@
   <ul class="task-list" id="task-list"></ul>
 
   <script>
+    const STORAGE_KEY = "todo-tasks";
     const form = document.getElementById("add-form");
     const input = document.getElementById("task-input");
     const list = document.getElementById("task-list");
 
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      const text = input.value.trim();
-      if (!text) {
-        return;
-      }
+    function readTasks() {
+      return Array.from(list.querySelectorAll(".task-item")).map(function (item) {
+        return {
+          text: item.querySelector(".task-text").textContent,
+          done: item.querySelector("input[type='checkbox']").checked
+        };
+      });
+    }
 
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(readTasks()));
+    }
+
+    function addTask(text, done) {
       const item = document.createElement("li");
-      item.className = "task-item";
+      item.className = "task-item" + (done ? " done" : "");
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
+      checkbox.checked = done;
 
       const label = document.createElement("span");
       label.className = "task-text";
@@ -90,22 +99,63 @@
       const removeButton = document.createElement("button");
       removeButton.type = "button";
       removeButton.textContent = "Удалить";
-      removeButton.hidden = true;
+      removeButton.hidden = !done;
 
       checkbox.addEventListener("change", function () {
         item.classList.toggle("done", checkbox.checked);
         removeButton.hidden = !checkbox.checked;
+        saveTasks();
       });
 
       removeButton.addEventListener("click", function () {
         item.remove();
+        saveTasks();
       });
 
       item.append(checkbox, label, removeButton);
       list.append(item);
+    }
+
+    function loadTasks() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return;
+      }
+
+      try {
+        const tasks = JSON.parse(raw);
+        if (!Array.isArray(tasks)) {
+          return;
+        }
+        tasks.forEach(function (task) {
+          if (!task || typeof task.text !== "string") {
+            return;
+          }
+          const text = task.text.trim();
+          if (!text) {
+            return;
+          }
+          addTask(text, Boolean(task.done));
+        });
+      } catch (error) {
+        return;
+      }
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) {
+        return;
+      }
+
+      addTask(text, false);
+      saveTasks();
       input.value = "";
       input.focus();
     });
+
+    loadTasks();
   </script>
 </body>
 </html>
