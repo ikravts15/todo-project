@@ -311,6 +311,7 @@
       count.textContent = done + " из " + tasks.length + " выполнено";
       sortToggle.disabled = tasks.length === 0;
       selectAll.disabled = tasks.length === 0;
+      selectAll.textContent = done >= 2 ? "Снять все" : "Выбрать все";
       deleteDone.hidden = done < 2;
       if (tasks.length === 0) {
         sortOptions.hidden = true;
@@ -405,8 +406,12 @@
       if (selectAll.disabled) {
         return;
       }
+      const done = readTasks().filter(function (task) {
+        return task.done;
+      }).length;
+      const nextDone = done < 2;
       Array.from(list.querySelectorAll(".task-item")).forEach(function (item) {
-        setItemDone(item, true);
+        setItemDone(item, nextDone);
       });
       saveTasks();
       updateCount();
